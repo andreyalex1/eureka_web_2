@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-100">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+
+    <title>TurtleBro {{ros_robot}} WEB control</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="./static/css/bootstrap/bootstrap.css" rel="stylesheet">
+    <link href="./static/css/bootstrap/bootstrap-slider.min.css" rel="stylesheet">
+    <link href="./static/css/sticky-footer-navbar.css" rel="stylesheet">
+    <link href="./static/css/styles.css" rel="stylesheet">    
+  </head>
+
+  <body class="d-flex flex-column h-100">
+  <header>
+  <!-- Fixed navbar -->
+  <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+    <a class="navbar-brand" href="#">TurleBroWeb</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarCollapse">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">Drive<span class="sr-only">(current)</span></a>
+        </li>
+      </ul>
+    </div> 
+    <div>
+      <input type="radio" id="keyboard" name="input_type" checked="checked" />
+      <label for="keyboard" style="color:white">keyboard</label>
+
+      <input type="radio" id="touch" name="input_type" />
+      <label for="touch" style="color:white">touch</label>
+
+      <input type="radio" id="flightstick" name="input_type" />
+      <label for="flightstick" style="color:white">flightstick</label>
+    </div>
+  </nav>
+</header>
+
+<!-- Begin page content -->
+<main role="main" class="flex-shrink-0">
+    <div class="row">
+      <div class="col-lg-3">
+        <div class="stream1" style="border:4px solid rgb(14, 229, 54); object-fit:contain">
+          <img src="http://{{ros_host}}:9999/stream?topic=/hazcam/image_raw&type=ros_compressed" width="400" height="300" quality="50" style="max-width:100%; height:auto"/>
+        </div>
+        <div class=" stream2" style="border:4px solid rgb(14, 229, 54)">
+          <img src="http://{{ros_host}}:9999/stream?topic=/topdowncam/image_raw&type=ros_compressed" width="400" height="300" quality="50" style="max-width:100%; height:auto"/>
+        </div>
+          <input name="del" type="button" class="btn btn-warning" value="Hide Stream">
+      </div>
+      <div class="col-lg-8">
+        <div class="stream3" style="border:8px solid rgb(14, 229, 54)">
+          <img src="http://{{ros_host}}:9999/stream?topic=/pancam/image_raw&type=ros_compressed" width="1280" height="720" quality="50" style="max-width:100%; height:auto"/>
+        </div>
+          <input name="del" type="button" class="btn btn-warning" value="Hide Stream">
+      </div>     
+    </div>
+      <div class="row">
+        <div class="col-lg-3">
+          <p class="lead"></p>
+          <p>Linear velocity: &nbsp; 
+            <input
+            id="linear_slider"
+            type="text"
+            data-provide="slider"
+            data-slider-min="10"
+            data-slider-max="200"
+            data-slider-step="10"
+            data-slider-value="50"
+          ></p>
+          <p class="lead"></p>
+          <p>Turn sharpness: &nbsp; 
+            <input
+            id="angular_slider"
+            type="text"
+            data-provide="slider"
+            data-slider-min="10"
+            data-slider-max="100"
+            data-slider-step="10"
+            data-slider-value="50"
+          ></p>
+        </div>
+        <div class="col-lg-3">
+          bat1: <p style="display:inline" id="bat1_volt"></p> V, <p style="display:inline" id="bat1_curr"></p> A<br/>
+          bat2: <p style="display:inline" id="bat2_volt"></p> V, <p style="display:inline" id="bat2_curr"></p> A<br/> 
+          bat3: <p style="display:inline" id="bat3_volt"></p> V, <p style="display:inline" id="bat3_curr"></p> A<br/>
+        </div>
+        <div class="col-lg-2 offset-lg-4">
+          <div class="container"> 
+            <div class="text-left" style="display: inline-block"> 
+              <button type="button" id="left_btn">left</button>
+            </div>
+            <div class="text-center" style="display: inline-block"> 
+              <button type="button" id="stop_btn">stop</button>
+            </div>
+            <div class="text-right" style="display: inline-block"> 
+              <button type="button" id="right_btn">right</button>
+            </div>
+          </div>
+          <div style="width: 128px">
+            <img src="static/joystick/joystick-base.png"/>
+            <div id="stick" style="position: absolute; left:50px; top:70px;">
+            <img src="static/joystick/joystick-red.png"/>    
+            </div>
+          </div>
+        </div>
+      </div>
+</main>
+
+<footer class="footer mt-auto py-3">
+  <div class="container">
+    <span class="text-muted">&copy; Братья вольт</span>
+  </div>
+</footer>
+<script src="./static/js/jquery-3.5.1.min.js" ></script>
+<script src="./static/js/bootstrap/bootstrap.bundle.js"></script>
+<script src="./static/js/bootstrap/bootstrap-slider.min.js"></script>
+<script src="./static/js/eventemitter2.min.js"></script>
+<script src="./static/js/roslib.min.js"></script>
+<script src="./static/js/keyboardteleop.js"></script>
+
+<script>
+$(document).ready(function(){
+
+    $("input[name='del']").each(function( index ) {
+      $(this).on("click", function(){
+        $(this).closest("div").find("img").attr("src","");
+        $(this).closest("div").remove();
+      })
+    });
+
+    var flag_w = 0, flag_s = 0, flag_a = 0, flag_d = 0;
+    var flag_q = 0, flag_e = 0;
+    var bat1_volt = 0, bat1_curr = 0;
+    var bat2_volt = 0, bat2_curr = 0;
+    var bat3_volt = 0, bat3_curr = 0;
+    var lin_vel_mult = 1;
+    var ang_vel_mult = 1;
+    var touch_flag  = 0, flightstick_flag = 0, keyboard_flag = 0;
+    var flag_right = 0, flag_left = 0, flag_stop = 0;
+    var flightstick = {
+      roll: 0,
+      pitch: 0,
+      yaw: 0,
+      throttle: 0,
+      js_x: 0,
+      js_y: 0,
+      R1: 0,
+      R3: 0,
+      L1: 0,
+      L3: 0,
+      square: 0,
+      triangle: 0,
+      x: 0,
+      o: 0
+    }
+    // Connecting to ROS.
+    var ros = new ROSLIB.Ros({
+        url : 'ws://{{ros_host}}:9090'
+    });
+
+    // Initialize the teleop.
+    var cmd_vel = new ROSLIB.Topic({
+        ros : ros,
+        name : '/cmd_vel',
+        messageType : 'geometry_msgs/msg/Twist'
+    });
+
+    
+
+    var linear_slider = document.getElementById("linear_slider");
+    
+    var angular_slider = document.getElementById("angular_slider");
+
+    var bat1_listener = new ROSLIB.Topic({
+      ros : ros,
+      name : '/bat1',
+      messageType : 'sensor_msgs/msg/BatteryState'
+    });  
+    var bat2_listener = new ROSLIB.Topic({
+      ros : ros,
+      name : '/bat2',
+      messageType : 'sensor_msgs/msg/BatteryState'
+    });   
+    var bat3_listener = new ROSLIB.Topic({
+      ros : ros,
+      name : '/bat3',
+      messageType : 'sensor_msgs/msg/BatteryState'
+    });     
+    
+    bat1_listener.subscribe(function(message) {
+      bat1_voltage = message.voltage
+      bat1_current = message.current
+      document.getElementById('bat1_volt').innerHTML=bat1_voltage.toFixed(2)
+      document.getElementById('bat1_curr').innerHTML=bat1_current.toFixed(2)
+    });
+    bat2_listener.subscribe(function(message) {
+      bat2_voltage = message.voltage
+      bat2_current = message.current
+      document.getElementById('bat2_volt').innerHTML=bat2_voltage.toFixed(2)
+      document.getElementById('bat2_curr').innerHTML=bat2_current.toFixed(2)
+    });
+    bat3_listener.subscribe(function(message) {
+      bat3_voltage = message.voltage
+      bat3_current = message.current
+      document.getElementById('bat3_volt').innerHTML=bat3_voltage.toFixed(2)
+      document.getElementById('bat3_curr').innerHTML=bat3_current.toFixed(2)
+    });
+
+    const rb = document.getElementById("right_btn");
+    rb.onpointerdown = function() {
+      flag_right = 1;
+    }
+
+    const lb = document.getElementById("left_btn");
+    lb.onpointerdown = function() {
+      flag_left = 1;
+    }
+
+    const sb = document.getElementById("stop_btn");
+    sb.onpointerdown = function() {
+      flag_left = 0;
+      flag_right = 0;
+    }
+    
+
+    document.addEventListener('keydown', function(event) {
+      if(event.keyCode == 87) {   //w
+          flag_w = 1
+      }
+      if(event.keyCode == 83) {
+          flag_s = 1
+      }
+      if(event.keyCode == 65) {
+          flag_a = 1
+      }
+      if(event.keyCode == 68) {
+          flag_d = 1
+      }
+      if(event.keyCode == 81) {
+          flag_q = 1
+      }
+      if(event.keyCode == 69) {
+          flag_e = 1
+      }
+    });
+    document.addEventListener('keyup', function(event) {
+      if(event.keyCode == 87) {   //w
+          flag_w = 0
+      }
+      if(event.keyCode == 83) {
+          flag_s = 0
+      }
+      if(event.keyCode == 65) {
+          flag_a = 0
+      }
+      if(event.keyCode == 68) {
+          flag_d = 0
+      }
+      if(event.keyCode == 81) {
+          flag_q = 0
+      }
+      if(event.keyCode == 69) {
+          flag_e = 0
+      }
+    });
+
+    function cmd_vel_pub() {
+      var v_lin = 0, v_ang = 0;
+      lin_vel_mult = parseFloat(linear_slider.value / 100.0)
+      ang_vel_mult = parseFloat(angular_slider.value / 100.0)
+      if(keyboard_flag == 1){
+        if(flag_q == 0 && flag_e == 0){
+          v_lin = (flag_w - flag_s) * lin_vel_mult
+          v_ang = (flag_a - flag_d) * ang_vel_mult
+        }
+        else{
+          v_lin = (flag_q - flag_e) * 2 * lin_vel_mult
+          v_ang = 100
+        }
+      }
+      if(touch_flag == 1){
+        if(flag_right == 0 && flag_left == 0){
+          v_lin = -2 * myStick.value.y
+          v_ang = -myStick.value.x
+        }
+        else{
+          v_ang = 100
+          v_lin = flag_left - flag_right
+        }
+      }
+      if(flightstick_flag == 1){
+        v_lin = flightstick.pitch * 2 
+        v_ang = flightstick.roll  
+      }
+      var twist = new ROSLIB.Message({
+        linear : {
+          x : v_lin ,
+          y : 0,
+          z : 0
+        },
+        angular : {
+          x : 0,
+          y : 0,
+          z : v_ang 
+        }
+      });
+      cmd_vel.publish(twist);
+    }
+
+    function checkCheckbox() {
+      const tc = document.getElementById('touch');
+      if (tc.checked) {
+        touch_flag = 1
+      } else {
+        touch_flag = 0
+      }
+
+      const fs = document.getElementById('flightstick');
+      if (fs.checked) {
+        flightstick_flag = 1
+      } else {
+        flightstick_flag = 0
+      }
+
+      const kb = document.getElementById('keyboard');
+      if (kb.checked) {
+        keyboard_flag = 1
+      } else {
+        keyboard_flag = 0
+      }
+    }
+
+    let myStick = new JoystickController("stick", 64, 8);
+    function joystick_loop()
+    {
+      requestAnimationFrame(joystick_loop);
+    }
+    joystick_loop();
+
+
+    function gamepad(){
+      const gp = navigator.getGamepads()[0];
+      flightstick.roll = -gp.axes[0]
+      flightstick.pitch = -gp.axes[1]
+    }
+
+    var interval_gamepad = NaN
+    var interval_checkbox = setInterval(checkCheckbox, 50);
+    var interval_cmd_vel = setInterval(cmd_vel_pub, 50);
+
+
+
+
+    window.addEventListener("gamepadconnected", (e) => {
+      console.log(
+        "Gamepad connected at index %d: %s. %d buttons, %d axes.",
+        e.gamepad.index,
+        e.gamepad.id,
+        e.gamepad.buttons.length,
+        e.gamepad.axes.length,
+      );
+      interval_gamepad = setInterval(gamepad, 200);
+    });
+
+    window.addEventListener("gamepaddisconnected", (e) => {
+      console.log(
+        "Gamepad disconnected from index %d: %s",
+        e.gamepad.index,
+        e.gamepad.id,
+      );
+      clearInterval(interval_gamepad)
+    });
+
+
+    });
+
+
+
+
+
+
+
+
+
+    class JoystickController
+    {
+      constructor( stickID, maxDistance, deadzone )
+      {
+        this.id = stickID;
+        let stick = document.getElementById(stickID);
+        // location from which drag begins, used to calculate offsets
+        this.dragStart = null;
+        // track touch identifier in case multiple joysticks present
+        this.touchId = null;
+        
+        this.active = false;
+        this.value = { x: 0, y: 0 }; 
+        let self = this;
+        function handleDown(event)
+        {
+            self.active = true;
+          // all drag movements are instantaneous
+          stick.style.transition = '0s';
+          // touch event fired before mouse event; prevent redundant mouse event from firing
+          event.preventDefault();
+            if (event.changedTouches)
+              self.dragStart = { x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY };
+            else
+              self.dragStart = { x: event.clientX, y: event.clientY };
+          // if this is a touch event, keep track of which one
+            if (event.changedTouches)
+              self.touchId = event.changedTouches[0].identifier;
+        }
+        
+        function handleMove(event) 
+        {
+            if ( !self.active ) return;
+            // if this is a touch event, make sure it is the right one
+            // also handle multiple simultaneous touchmove events
+            let touchmoveId = null;
+            if (event.changedTouches)
+            {
+              for (let i = 0; i < event.changedTouches.length; i++)
+              {
+                if (self.touchId == event.changedTouches[i].identifier)
+                {
+                  touchmoveId = i;
+                  event.clientX = event.changedTouches[i].clientX;
+                  event.clientY = event.changedTouches[i].clientY;
+                }
+              }
+              if (touchmoveId == null) return;
+            }
+            const xDiff = event.clientX - self.dragStart.x;
+            const yDiff = event.clientY - self.dragStart.y;
+            const angle = Math.atan2(yDiff, xDiff);
+          const distance = Math.min(maxDistance, Math.hypot(xDiff, yDiff));
+          const xPosition = distance * Math.cos(angle);
+          const yPosition = distance * Math.sin(angle);
+          // move stick image to new position
+            stick.style.transform = `translate3d(${xPosition}px, ${yPosition}px, 0px)`;
+          // deadzone adjustment
+          const distance2 = (distance < deadzone) ? 0 : maxDistance / (maxDistance - deadzone) * (distance - deadzone);
+            const xPosition2 = distance2 * Math.cos(angle);
+          const yPosition2 = distance2 * Math.sin(angle);
+            const xPercent = parseFloat((xPosition2 / maxDistance).toFixed(4));
+            const yPercent = parseFloat((yPosition2 / maxDistance).toFixed(4));
+            
+            self.value = { x: xPercent, y: yPercent };
+          }
+        function handleUp(event) 
+        {
+            if ( !self.active ) return;
+            // if this is a touch event, make sure it is the right one
+            if (event.changedTouches && self.touchId != event.changedTouches[0].identifier) return;
+            // transition the joystick position back to center
+            stick.style.transition = '.2s';
+            stick.style.transform = `translate3d(0px, 0px, 0px)`;
+            // reset everything
+            self.value = { x: 0, y: 0 };
+            self.touchId = null;
+            self.active = false;
+        }
+        stick.addEventListener('mousedown', handleDown);
+        stick.addEventListener('touchstart', handleDown);
+        document.addEventListener('mousemove', handleMove, {passive: false});
+        document.addEventListener('touchmove', handleMove, {passive: false});
+        document.addEventListener('mouseup', handleUp);
+        document.addEventListener('touchend', handleUp);
+      }
+    }
+</script>
+</html>
