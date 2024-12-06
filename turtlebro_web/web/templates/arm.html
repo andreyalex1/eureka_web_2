@@ -8,33 +8,45 @@
     <title>TurtleBro {{ros_robot}} WEB control</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="./static/css/bootstrap/bootstrap.css" rel="stylesheet">
-    <link href="./static/css/bootstrap/bootstrap-slider.min.css" rel="stylesheet">
-    <link href="./static/css/sticky-footer-navbar.css" rel="stylesheet">
-    <link href="./static/css/styles.css" rel="stylesheet">    
+    <link href="../static/css/bootstrap/bootstrap.css" rel="stylesheet">
+    <link href="../static/css/bootstrap/bootstrap-slider.min.css" rel="stylesheet">
+    <link href="../static/css/sticky-footer-navbar.css" rel="stylesheet">
+    <link href="../static/css/styles.css" rel="stylesheet">    
   </head>
 
   <body class="d-flex flex-column h-100">
   <header>
   <!-- Fixed navbar -->
   <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-    <a class="navbar-brand" href="#">TurleBroWeb</a>
+    <a class="navbar-brand" href="#">EUREKA Web</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarCollapse">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item active">
-          <a class="nav-link" href="#">Drive<span class="sr-only">(current)</span></a>
+          <a class="nav-link" href="index.html">Drive<span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="arm.html">Arm<span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="drill.html">Drill<span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="autnav.html">Autonomous<span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item active">
+          <a class="nav-link" href="power.html">Power<span class="sr-only">(current)</span></a>
         </li>
       </ul>
     </div> 
     <div>
-      <input type="radio" id="keyboard" name="input_type" checked="checked" />
-      <label for="keyboard" style="color:white">keyboard</label>
+      <input type="radio" id="dd" name="input_type" checked="checked" />
+      <label for="keyboard" style="color:white">direct drive</label>
 
-      <input type="radio" id="touch" name="input_type" />
-      <label for="touch" style="color:white">touch</label>
+      <input type="radio" id="pk" name="input_type" />
+      <label for="touch" style="color:white">partial kinematics</label>
 
       <input type="radio" id="flightstick" name="input_type" />
       <label for="flightstick" style="color:white">flightstick</label>
@@ -43,81 +55,110 @@
 </header>
 
 <!-- Begin page content -->
-<main role="main" class="flex-shrink-0">
+<main role="main" class="flex-shrink-0"  style="margin-top: 5%;">
     <div class="row">
-      <div class="col-lg-3">
+      <div class="col-lg-4">
         <div class="stream1" style="border:4px solid rgb(14, 229, 54); object-fit:contain">
-          <img src="http://{{ros_host}}:9999/stream?topic=/hazcam/image_raw&type=ros_compressed" width="400" height="300" quality="50" style="max-width:100%; height:auto"/>
+          <img src="http://{{ros_host}}:9999/stream?topic=/armcam/image_raw&type=mjpeg&default_transport=compressed&quality=20" width="400" height="300"  style="max-width:100%; height:auto"/>
         </div>
         <div class=" stream2" style="border:4px solid rgb(14, 229, 54)">
-          <img src="http://{{ros_host}}:9999/stream?topic=/topdowncam/image_raw&type=ros_compressed" width="400" height="300" quality="50" style="max-width:100%; height:auto"/>
+          <img src="http://{{ros_host}}:9999/stream?topic=/topdowncam/image_raw&type=mjpeg&default_transport=compressed&quality=20" width="400" height="300"  style="max-width:100%; height:auto"/>
         </div>
           <input name="del" type="button" class="btn btn-warning" value="Hide Stream">
       </div>
       <div class="col-lg-8">
         <div class="stream3" style="border:8px solid rgb(14, 229, 54)">
-          <img src="http://{{ros_host}}:9999/stream?topic=/pancam/image_raw&type=ros_compressed" width="1280" height="720" quality="50" style="max-width:100%; height:auto"/>
+          <img src="http://{{ros_host}}:9999/stream?topic=/pancam/image_raw&type=mjpeg&image_transport=compressed&quality=20" width="800" height="600"  style="max-width:100%; height:auto"/>
         </div>
           <input name="del" type="button" class="btn btn-warning" value="Hide Stream">
-      </div>     
-    </div>
-      <div class="row">
-        <div class="col-lg-3">
+      </div> 
+      <div class="col-lg-2">
+        <div class="row">
           <p class="lead"></p>
-          <p>Linear velocity: &nbsp; 
+          <p>Arm_Velocity: ; 
             <input
-            id="linear_slider"
+            id="arm_slider"
             type="text"
             data-provide="slider"
-            data-slider-min="10"
-            data-slider-max="200"
-            data-slider-step="10"
-            data-slider-value="50"
-          ></p>
-          <p class="lead"></p>
-          <p>Turn sharpness: &nbsp; 
-            <input
-            id="angular_slider"
-            type="text"
-            data-provide="slider"
-            data-slider-min="10"
-            data-slider-max="100"
-            data-slider-step="10"
-            data-slider-value="50"
+            data-slider-min="5"
+            data-slider-max="80"
+            data-slider-step="5"
+            data-slider-value="30"
           ></p>
         </div>
-        <div class="col-lg-3">
           bat1: <p style="display:inline" id="bat1_volt"></p> V, <p style="display:inline" id="bat1_curr"></p> A<br/>
           bat2: <p style="display:inline" id="bat2_volt"></p> V, <p style="display:inline" id="bat2_curr"></p> A<br/> 
           bat3: <p style="display:inline" id="bat3_volt"></p> V, <p style="display:inline" id="bat3_curr"></p> A<br/>
+      </div> 
+      <div class="col-lg-2">
+        <div class="=row">
+          Rover Config:
         </div>
-        <div class="col-lg-2 offset-lg-4">
-          <div class="container"> 
-            <div class="text-left" style="display: inline-block"> 
-              <button type="button" id="left_btn">left</button>
-            </div>
-            <div class="text-center" style="display: inline-block"> 
-              <button type="button" id="stop_btn">stop</button>
-            </div>
-            <div class="text-right" style="display: inline-block"> 
-              <button type="button" id="right_btn">right</button>
-            </div>
-          </div>
-          <div style="width: 128px">
-            <img src="static/joystick/joystick-base.png"/>
-            <div id="stick" style="position: absolute; left:50px; top:70px;">
-            <img src="static/joystick/joystick-red.png"/>    
-            </div>
-          </div>
+        <div class="=row">
+          Control Mode:
+          <input type="radio" id="control_raw" name="control_mode" />
+          <label for="control_raw" >raw</label>
+    
+          <input type="radio" id="control_pid" name="control_mode"  checked="checked"/>
+          <label for="control_pid">pid</label>
+    
+          <input type="radio" id="control_st" name="control_mode" />
+          <label for="control_st" >st</label>
         </div>
-      </div>
-</main>
-
-<footer class="footer mt-auto py-3">
-  <div class="container">
-    <span class="text-muted">&copy; Братья вольт</span>
-  </div>
-</footer>
+        <div class="=row">
+          Power Saving:
+          <input type="radio" id="ps_on" name="power_saving" />
+          <label for="ps_on" >on</label>
+    
+          <input type="radio" id="ps_off" name="power_saving"  checked="checked"/>
+          <label for="ps_off">off</label>
+        </div>
+        <div class="=row">
+          Heartbeat:
+          <input type="radio" id="hb_on" name="hearbeat" checked="checked"/>
+          <label for="hb_on" >on</label>
+    
+          <input type="radio" id="hb_off" name="hearbeat" />
+          <label for="hb_off">off</label>
+        </div>
+      </div> 
+      <div class="col-1">
+          <button id="0_l" style="height:50px;width:100px">Left</button>
+          <button id="0_r" style="height:50px;width:100px">Right</button>
+          Slider1
+      </div> 
+      <div class="col-1">
+          <button id="1_l" style="height:50px;width:100px">Up (Forward)</button>
+          <button id="1_r" style="height:50px;width:100px">Down (Backward)</button>
+          Rotational1 (X)
+      </div> 
+      <div class="col-1">
+          <button id="2_l" style="height:50px;width:100px">Up</button>
+          <button id="2_r" style="height:50px;width:100px">Down</button>
+          Rotational2 (Y)
+      </div> 
+      <div class="col-1">
+          <button id="3_l" style="height:50px;width:100px">Up</button>
+          <button id="3_r" style="height:50px;width:100px">Down</button>
+          Rotational3
+      </div> 
+      <div class="col-1">
+          <button id="4_l" style="height:50px;width:100px">Left</button>
+          <button id="4_r" style="height:50px;width:100px">Right</button>
+          Rotational4
+      </div> 
+      <div class="col-1">
+          <button id="5_l" style="height:50px;width:100px">C-clockwise</button>
+          <button id="5_r" style="height:50px;width:100px">Clockwise</button>
+          Rotational5
+      </div> 
+      <div class="col-1">
+          <button id="6_l" style="height:50px;width:100px">Close</button>
+          <button id="6_r" style="height:50px;width:100px">Open</button>
+          Slider2
+      </div>    
+    </div>
+     
 <script src="./static/js/jquery-3.5.1.min.js" ></script>
 <script src="./static/js/bootstrap/bootstrap.bundle.js"></script>
 <script src="./static/js/bootstrap/bootstrap-slider.min.js"></script>
@@ -144,6 +185,15 @@ $(document).ready(function(){
     var ang_vel_mult = 1;
     var touch_flag  = 0, flightstick_flag = 0, keyboard_flag = 0;
     var flag_right = 0, flag_left = 0, flag_stop = 0;
+    var drive_mode = 0;
+    var control_mode = 1, power_saving = 0, hearbeat = 1;
+    var joint_commands_l = [0,0,0,0,0,0,0]
+    var joint_commands_r = [0,0,0,0,0,0,0]
+    var direction = [-1,1,1,-1,1,-1,-1]
+    const elements_l = [document.getElementById('0_l'), document.getElementById('1_l'), document.getElementById('2_l')
+      ,document.getElementById('3_l'), document.getElementById('4_l'), document.getElementById('5_l'), document.getElementById('6_l')]
+    const elements_r = [document.getElementById('0_r'), document.getElementById('1_r'), document.getElementById('2_r')
+      ,document.getElementById('3_r'), document.getElementById('4_r'), document.getElementById('5_r'), document.getElementById('6_r')]
     var flightstick = {
       roll: 0,
       pitch: 0,
@@ -166,17 +216,29 @@ $(document).ready(function(){
     });
 
     // Initialize the teleop.
-    var cmd_vel = new ROSLIB.Topic({
+    var arm_commands = new ROSLIB.Topic({
         ros : ros,
-        name : '/cmd_vel',
-        messageType : 'geometry_msgs/msg/Twist'
+        name : '/arm_commands',
+        messageType : 'sensor_msgs/msg/JointState'
+    });
+
+    var arm_js = new ROSLIB.Topic({
+        ros : ros,
+        name : '/arm_js',
+        messageType : 'sensor_msgs/msg/JointState'
+    });
+
+
+    var arm_settings = new ROSLIB.Topic({
+        ros : ros,
+        name : '/arm_settings',
+        messageType : 'sensor_msgs/msg/JointState'
     });
 
     
 
-    var linear_slider = document.getElementById("linear_slider");
+    var arm_slider = document.getElementById("arm_slider");
     
-    var angular_slider = document.getElementById("angular_slider");
 
     var bat1_listener = new ROSLIB.Topic({
       ros : ros,
@@ -213,22 +275,147 @@ $(document).ready(function(){
       document.getElementById('bat3_curr').innerHTML=bat3_current.toFixed(2)
     });
 
-    const rb = document.getElementById("right_btn");
-    rb.onpointerdown = function() {
-      flag_right = 1;
+    for (let c = 0; c < 7; c += 1){
+      elements_l[c].onpointerdown = function() {
+      //  console.log("Hello There!");
+        joint_commands_l[c] = 1;
+      }
+      elements_l[c].onpointerup = function() {
+        joint_commands_l[c] = 0;
+      }
+      elements_r[c].onpointerdown = function() {
+        joint_commands_r[c] = 1;
+      }
+      elements_r[c].onpointerup = function() {
+        joint_commands_r[c] = 0;
+      }
     }
 
-    const lb = document.getElementById("left_btn");
-    lb.onpointerdown = function() {
-      flag_left = 1;
-    }
+    document.addEventListener('keydown', function(event) {
+      if(event.keyCode == 87) {   //w
+        joint_commands_l[2] = 1
+      }
+      if(event.keyCode == 83) {   //a
+        joint_commands_r[2] = 1
+      }
+      if(event.keyCode == 65) {   //s
+        joint_commands_l[4] = 1
+      }
+      if(event.keyCode == 68) {   //d
+        joint_commands_r[4] = 1
+      }
+      if(event.keyCode == 81) {   //q
+        joint_commands_l[5] = 1
+      }
+      if(event.keyCode == 69) {   //e
+        joint_commands_r[5] = 1
+      }
+      if(event.keyCode == 38) {   //arrowup
+        joint_commands_l[1] = 1
+      }
+      if(event.keyCode == 40) {   //arrowdown
+        joint_commands_r[1] = 1
+      }
+      if(event.keyCode == 37) {   //arrowleft
+        joint_commands_l[0] = 1
+      }
+      if(event.keyCode == 39) {   //arrowright
+        joint_commands_r[0] = 1
+      }
+    });
+    document.addEventListener('keyup', function(event) {
+      if(event.keyCode == 87) {   //w
+        joint_commands_l[2] = 0
+      }
+      if(event.keyCode == 83) {
+        joint_commands_r[2] = 0
+      }
+      if(event.keyCode == 65) {
+        joint_commands_l[4] = 0
+      }
+      if(event.keyCode == 68) {
+        joint_commands_r[4] = 0
+      }
+      if(event.keyCode == 81) {
+        joint_commands_l[5] = 0
+      }
+      if(event.keyCode == 69) {
+        joint_commands_r[5] = 0
+      }
+      if(event.keyCode == 38) {   //arrowup
+        joint_commands_l[1] = 0
+      }
+      if(event.keyCode == 40) {   //arrowdown
+        joint_commands_r[1] = 0
+      }
+      if(event.keyCode == 37) {   //arrowleft
+        joint_commands_l[0] = 0
+      }
+      if(event.keyCode == 39) {   //arrowright
+        joint_commands_r[0] = 0
+      }
+    });
 
-    const sb = document.getElementById("stop_btn");
-    sb.onpointerdown = function() {
-      flag_left = 0;
-      flag_right = 0;
-    }
     
+    
+
+    function checkCheckbox() {
+      if(document.getElementById('control_raw').checked){
+        control_mode = 0
+      }
+      if(document.getElementById('control_pid').checked){
+        control_mode = 1
+      }
+      if(document.getElementById('control_st').checked){
+        control_mode = 2
+      }
+
+      if(document.getElementById('ps_off').checked){
+        power_saving = 0
+      }
+      if(document.getElementById('ps_on').checked){
+        power_saving = 1
+      }
+
+      if(document.getElementById('hb_off').checked){
+        hearbeat = 0
+      }
+      if(document.getElementById('hb_on').checked){
+        heartbeat = 1
+      }
+    }
+
+    function arm_commands_pub() {
+      var velocity = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0];
+      for(let c = 0; c < 6; c += 1){
+        velocity[c] = (-joint_commands_l[c] + joint_commands_r[c]) * arm_slider.value * direction[c] / 1000.0;
+      }
+      velocity[6] = (-joint_commands_l[6] + joint_commands_r[6]) *  direction[6] ;
+      var jointstate = new ROSLIB.Message({
+        name : ["Rotational0", "Rotational1", "Rotational2", "Rotational3", "Rotational4", "Rotational5", "Slider0"],
+        position : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        velocity: velocity,
+        effort: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      });
+      //console.log(jointstate);
+  //    if(control_mode == 0){
+        arm_commands.publish(jointstate);
+   //   }
+    //  if(control_mode == 1){
+     //   arm_js.publish(jointstate);
+    //  }
+    }
+
+    function arm_settings_publisher(){
+      var jointstate = new ROSLIB.Message({
+        name : ['control_mode', 'power_saving', 'heartbeat'],
+        position : [control_mode, power_saving, hearbeat],
+        velocity : [0.0, 0.0, 0.0],
+        effort : [0.0, 0.0, 0.0]
+      });
+      arm_settings.publish(jointstate);
+    }
+
 
     document.addEventListener('keydown', function(event) {
       if(event.keyCode == 87) {   //w
@@ -271,72 +458,13 @@ $(document).ready(function(){
       }
     });
 
-    function cmd_vel_pub() {
-      var v_lin = 0, v_ang = 0;
-      lin_vel_mult = parseFloat(linear_slider.value / 100.0)
-      ang_vel_mult = parseFloat(angular_slider.value / 100.0)
-      if(keyboard_flag == 1){
-        if(flag_q == 0 && flag_e == 0){
-          v_lin = (flag_w - flag_s) * lin_vel_mult
-          v_ang = (flag_a - flag_d) * ang_vel_mult
-        }
-        else{
-          v_lin = (flag_q - flag_e) * 2 * lin_vel_mult
-          v_ang = 100
-        }
-      }
-      if(touch_flag == 1){
-        if(flag_right == 0 && flag_left == 0){
-          v_lin = -2 * myStick.value.y
-          v_ang = -myStick.value.x
-        }
-        else{
-          v_ang = 100
-          v_lin = flag_left - flag_right
-        }
-      }
-      if(flightstick_flag == 1){
-        v_lin = flightstick.pitch * 2 
-        v_ang = flightstick.roll  
-      }
-      var twist = new ROSLIB.Message({
-        linear : {
-          x : v_lin ,
-          y : 0,
-          z : 0
-        },
-        angular : {
-          x : 0,
-          y : 0,
-          z : v_ang 
-        }
-      });
-      cmd_vel.publish(twist);
-    }
+    var interval_gamepad = NaN
+    var interval_checkbox = setInterval(checkCheckbox, 50);
+    var interval_cmd_vel = setInterval(arm_commands_pub, 50);
+    var interval_config = setInterval(arm_settings_publisher, 500);
 
-    function checkCheckbox() {
-      const tc = document.getElementById('touch');
-      if (tc.checked) {
-        touch_flag = 1
-      } else {
-        touch_flag = 0
-      }
 
-      const fs = document.getElementById('flightstick');
-      if (fs.checked) {
-        flightstick_flag = 1
-      } else {
-        flightstick_flag = 0
-      }
-
-      const kb = document.getElementById('keyboard');
-      if (kb.checked) {
-        keyboard_flag = 1
-      } else {
-        keyboard_flag = 0
-      }
-    }
-
+/*
     let myStick = new JoystickController("stick", 64, 8);
     function joystick_loop()
     {
@@ -351,9 +479,7 @@ $(document).ready(function(){
       flightstick.pitch = -gp.axes[1]
     }
 
-    var interval_gamepad = NaN
-    var interval_checkbox = setInterval(checkCheckbox, 50);
-    var interval_cmd_vel = setInterval(cmd_vel_pub, 50);
+    
 
 
 
@@ -378,7 +504,7 @@ $(document).ready(function(){
       clearInterval(interval_gamepad)
     });
 
-
+*/
     });
 
 
