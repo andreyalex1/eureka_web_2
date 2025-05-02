@@ -15,7 +15,7 @@
 
     
   </head>
-
+  <link rel="'shortcut icon" href="#">
   <body class="d-flex flex-column h-100">
   <header>
   <!-- Fixed navbar -->
@@ -98,9 +98,25 @@
           ></p>
         </div>
         <div class="col-lg-2">
-          bat1: <p style="display:inline" id="bat1_volt"></p> V, <p style="display:inline" id="bat1_curr"></p> A<br/>
-          bat2: <p style="display:inline" id="bat2_volt"></p> V, <p style="display:inline" id="bat2_curr"></p> A<br/> 
-          bat3: <p style="display:inline" id="bat3_volt"></p> V, <p style="display:inline" id="bat3_curr"></p> A<br/>
+          <div class="=row">
+            Light Control:
+          </div>
+          <div class="=row">
+            Spotlight:
+            <input type="radio" id="spotlight_on" name="spotlight" />
+            <label for="spotlight_on" >on</label>
+
+            <input type="radio" id="spotlight_off" name="spotlight" checked="checked"/>
+            <label for="spotlight_off" >off</label>
+          </div>
+          <div class="=row">
+            LED Strip:
+            <input type="radio" id="ledstrip_on" name="ledstrip" />
+            <label for="ledstrip_on" >on</label>
+
+            <input type="radio" id="ledstrip_off" name="ledstrip" checked="checked"/>
+            <label for="ledstrip_off" >off</label>
+          </div>
         </div>
         <div class="col-lg-2">
           <div class="=row">
@@ -190,6 +206,7 @@ $(document).ready(function(){
     var touch_flag  = 0, flightstick_flag = 0, keyboard_flag = 0;
     var flag_right = 0, flag_left = 0, flag_stop = 0;
     var control_mode = 1, power_saving = 0, hearbeat = 1;
+    var spotlight = 0, ledstrip = 0;
     var flightstick = {
       roll: 0,
       pitch: 0,
@@ -221,6 +238,12 @@ $(document).ready(function(){
     var drivetrain_config = new ROSLIB.Topic({
         ros : ros,
         name : '/wheel_settings',
+        messageType : 'sensor_msgs/msg/JointState'
+    });
+
+    var light_comamnds = new ROSLIB.Topic({
+        ros : ros,
+        name : '/light_commands',
         messageType : 'sensor_msgs/msg/JointState'
     });
 
@@ -340,7 +363,7 @@ $(document).ready(function(){
 
     function cmd_vel_pub() {
       var v_lin = 0, v_ang = 0;
-      lin_vel_mult = parseFloat(linear_slider.value / 1000.0)
+      lin_vel_mult = parseFloat(linear_slider.value / 250.0)
       ang_vel_mult = parseFloat(angular_slider.value / 100.0)
       if(keyboard_flag == 1){
         if(flag_q == 0 && flag_e == 0){
@@ -391,6 +414,16 @@ $(document).ready(function(){
       drivetrain_config.publish(jointstate);
     }
 
+    function light_comands_publisher(){
+      var jointstate = new ROSLIB.Message({
+        name : ['spotlight', 'ledstrip'],
+        position : [spotlight, ledstrip],
+        velocity : [0.0, 0.0],
+        effort : [0.0, 0.0]
+      });
+      light_comamnds.publish(jointstate);
+    }
+
     function checkCheckbox() {
       var tc = document.getElementById('touch');
       if (tc.checked) {
@@ -437,6 +470,21 @@ $(document).ready(function(){
       if(document.getElementById('hb_on').checked){
         heartbeat = 1
       }
+
+      if(document.getElementById('spotlight_off').checked){
+        spotlight = 0
+      }
+      if(document.getElementById('spotlight_on').checked){
+        spotlight = 1
+      }
+
+
+      if(document.getElementById('ledstrip_off').checked){
+        ledstrip = 0
+      }
+      if(document.getElementById('ledstrip_on').checked){
+        ledstrip = 1
+      }
     }
 
     let myStick = new JoystickController("stick", 64, 8);
@@ -456,7 +504,8 @@ $(document).ready(function(){
     var interval_gamepad = NaN
     var interval_checkbox = setInterval(checkCheckbox, 50);
     var interval_cmd_vel = setInterval(cmd_vel_pub, 50);
-    var interval_config = setInterval(drivetrain_config_publisher, 500);
+    var interval_config = setInterval(drivetrain_config_publisher, 200);
+    var interval_config = setInterval(light_comands_publisher, 200);
 
 
 
