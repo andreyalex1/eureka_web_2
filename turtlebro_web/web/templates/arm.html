@@ -109,10 +109,13 @@
         </div>
         <div class="=row">
           Power Saving:
-          <input type="radio" id="ps_on" name="power_saving" />
-          <label for="ps_on" >on</label>
-    
-          <input type="radio" id="ps_off" name="power_saving"  checked="checked"/>
+          <input type="radio" id="ps_all" name="power_saving" />
+          <label for="ps_all" >all</label>
+
+          <input type="radio" id="ps_non_backdriveable" name="power_saving" checked="checked"/>
+          <label for="ps_on_backdriveable" >safe</label>
+
+          <input type="radio" id="ps_off" name="power_saving"  />
           <label for="ps_off">off</label>
         </div>
         <div class="=row">
@@ -191,7 +194,7 @@ $(document).ready(function(){
     var control_mode = 1, power_saving = 0, hearbeat = 1;
     var joint_commands_l = [0,0,0,0,0,0,0]
     var joint_commands_r = [0,0,0,0,0,0,0]
-    var direction = [-1,1,1,-1,1,-1,-1]
+    var direction = [1,1,1,1,1,-1,-1]
     const elements_l = [document.getElementById('0_l'), document.getElementById('1_l'), document.getElementById('2_l')
       ,document.getElementById('3_l'), document.getElementById('4_l'), document.getElementById('5_l'), document.getElementById('6_l')]
     const elements_r = [document.getElementById('0_r'), document.getElementById('1_r'), document.getElementById('2_r')
@@ -294,13 +297,13 @@ $(document).ready(function(){
     }
 
     document.addEventListener('keydown', function(event) {
-      if(event.keyCode == 87) {   //w
+      if(event.keyCode == 101) {   //w or num5
         joint_commands_l[2] = 1
       }
-      if(event.keyCode == 83) {   //a
+      if(event.keyCode == 98) {   //s or num2
         joint_commands_r[2] = 1
       }
-      if(event.keyCode == 65) {   //s
+      if(event.keyCode == 65) {   //a
         joint_commands_l[4] = 1
       }
       if(event.keyCode == 68) {   //d
@@ -312,49 +315,73 @@ $(document).ready(function(){
       if(event.keyCode == 69) {   //e
         joint_commands_r[5] = 1
       }
-      if(event.keyCode == 38) {   //arrowup
+      if(event.keyCode == 100) {   //num4
         joint_commands_l[1] = 1
       }
-      if(event.keyCode == 40) {   //arrowdown
+      if(event.keyCode == 97) {   //num1
         joint_commands_r[1] = 1
       }
-      if(event.keyCode == 37) {   //arrowleft
+      if(event.keyCode == 67) {   //z 
         joint_commands_l[0] = 1
       }
-      if(event.keyCode == 39) {   //arrowright
+      if(event.keyCode == 90) {   //c 
         joint_commands_r[0] = 1
+      }
+      if( event.keyCode == 102) {   //num6
+        joint_commands_l[3] = 1
+      }
+      if( event.keyCode == 99) {   //num3
+        joint_commands_r[3] = 1
+      }
+      if( event.keyCode == 103) {   //num6
+        joint_commands_l[6] = 1
+      }
+      if( event.keyCode == 105) {   //num3
+        joint_commands_r[6] = 1
       }
     });
     document.addEventListener('keyup', function(event) {
-      if(event.keyCode == 87) {   //w
+      if(event.keyCode == 101) {   //num5
         joint_commands_l[2] = 0
       }
-      if(event.keyCode == 83) {
+      if(event.keyCode == 98) {   //num2
         joint_commands_r[2] = 0
       }
-      if(event.keyCode == 65) {
+      if(event.keyCode == 65) {   //a
         joint_commands_l[4] = 0
       }
-      if(event.keyCode == 68) {
+      if(event.keyCode == 68) {   //d
         joint_commands_r[4] = 0
       }
-      if(event.keyCode == 81) {
+      if(event.keyCode == 81) {   //q
         joint_commands_l[5] = 0
       }
-      if(event.keyCode == 69) {
+      if(event.keyCode == 69) {   //e
         joint_commands_r[5] = 0
       }
-      if(event.keyCode == 38) {   //arrowup
+      if(event.keyCode == 100) {   //num4
         joint_commands_l[1] = 0
       }
-      if(event.keyCode == 40) {   //arrowdown
+      if(event.keyCode == 97) {   //num1
         joint_commands_r[1] = 0
       }
-      if(event.keyCode == 37) {   //arrowleft
+      if(event.keyCode == 67) {   //z 
         joint_commands_l[0] = 0
       }
-      if(event.keyCode == 39) {   //arrowright
+      if(event.keyCode == 90) {   //c 
         joint_commands_r[0] = 0
+      }
+      if( event.keyCode == 102) {   //num6
+        joint_commands_l[3] = 0
+      }
+      if( event.keyCode == 99) {   //num3
+        joint_commands_r[3] = 0
+      }
+      if( event.keyCode == 103) {   //num6
+        joint_commands_l[6] = 0
+      }
+      if( event.keyCode == 105) {   //num3
+        joint_commands_r[6] = 0
       }
     });
 
@@ -375,9 +402,13 @@ $(document).ready(function(){
       if(document.getElementById('ps_off').checked){
         power_saving = 0
       }
-      if(document.getElementById('ps_on').checked){
+      if(document.getElementById('ps_non_backdriveable').checked){
         power_saving = 1
       }
+      if(document.getElementById('ps_all').checked){
+        power_saving = 2
+      }
+
 
       if(document.getElementById('hb_off').checked){
         hearbeat = 0
