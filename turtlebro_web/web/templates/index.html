@@ -92,10 +92,10 @@
             id="linear_slider"
             type="text"
             data-provide="slider"
-            data-slider-min="80"
-            data-slider-max="400"
-            data-slider-step="10"
-            data-slider-value="200"
+            data-slider-min="10"
+            data-slider-max="100"
+            data-slider-step="5"
+            data-slider-value="20"
           ></p>
           <p class="lead"></p>
           <p>Turn sharpness: &nbsp; 
@@ -377,7 +377,7 @@ $(document).ready(function(){
 
     function cmd_vel_pub() {
       var v_lin = 0, v_ang = 0;
-      lin_vel_mult = parseFloat(linear_slider.value / 250.0)
+      lin_vel_mult = parseFloat(linear_slider.value / 100.0)
       ang_vel_mult = parseFloat(angular_slider.value / 100.0)
       if(keyboard_flag == 1){
         if(flag_q == 0 && flag_e == 0){
