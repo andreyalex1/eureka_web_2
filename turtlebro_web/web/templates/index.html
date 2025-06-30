@@ -201,7 +201,7 @@ $(document).ready(function(){
       'Numpad1', 'Numpad2','Numpad3','Numpad4','Numpad5','Numpad6',
       'Numpad7','Numpad9','NumpadAdd','NumpadSubtract','NumpadMultiply','NumpadDivide',
       'Numpad0','NumpadEnter',
-      'ShiftLeft', 'AltLeft'
+      'ShiftLeft', 'CapsLock'
     ];
 
     const keyStatus = {};
@@ -332,7 +332,7 @@ $(document).ready(function(){
       if(keyStatus['ShiftLeft'] > 0){
         v_lin *= 2
       }
-      if(keyStatus['AltLeft'] > 0){
+      if(keyStatus['CapsLock'] > 0){
         v_lin /= 2
       }
       if(keyStatus['ArrowUp'] > 0){
@@ -378,7 +378,7 @@ $(document).ready(function(){
         if(keyStatus['ShiftLeft'] > 0){
           velocity[c] *= 2
         }
-        if(keyStatus['AltLeft'] > 0){
+        if(keyStatus['CapsLock'] > 0){
           velocity[c] /= 2
         }
       }
