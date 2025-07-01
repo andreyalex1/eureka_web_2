@@ -78,9 +78,9 @@
       </div>     
     </div>
       <div class="row">
-        <div class="col-lg-3">
-          <h4>Drivetrain Settings</h4>
-          <p>Linear velocity:  
+        <div class="col-lg-2" style="line-height: 1;">
+          <h4>Drivetrain</h4>
+          <p>Linear:  
             <input
             id="linear_slider"
             type="text"
@@ -89,8 +89,9 @@
             data-slider-max="100"
             data-slider-step="5"
             data-slider-value="20"
+            style="width: 60%;"
           ></p>
-          <p>Turn sharpness:  
+          <p>Cornering:  
             <input
             id="angular_slider"
             type="text"
@@ -99,6 +100,7 @@
             data-slider-max="140"
             data-slider-step="10"
             data-slider-value="100"
+            style="width: 60%;"
           ></p>
           <p>Control Mode:
             <input type="radio" id="drive_control_raw" name="control_mode" />
@@ -110,10 +112,17 @@
             <input type="radio" id="drive_control_st" name="control_mode" />
             <label for="drive_control_st" >st</label>
           </p>
+          <p>Control Publish:
+            <input type="radio" id="control_publish_on" name="control_publish" checked="checked"/>
+            <label for="drive_control_raw" >on</label>
+      
+            <input type="radio" id="control_publish_off" name="control_publish" />
+            <label for="drive_control_pid">off</label>
+          </p>
         </div>
-        <div class="col-lg-3">
-          <h4>Arm Settings</h4>
-          <p>Arm_Velocity: 
+        <div class="col-lg-2" style="line-height: 1;">
+          <h4>Arm</h4>
+          <p>Velocity: 
             <input
             id="arm_slider"
             type="text"
@@ -122,6 +131,7 @@
             data-slider-max="75"
             data-slider-step="5"
             data-slider-value="35"
+            style="width: 60%;"
           ></p>
           <p>Power Saving:
             <input type="radio" id="arm_ps_all" name="power_saving" />
@@ -134,28 +144,46 @@
             <label for="arm_ps_off">off</label>
           </p>
         </div>
-        <div class="col-lg-2">
+        <div class="col-lg-1" style="line-height: 1;">
+          <h4>Batteries</h4>
+          <p>
+            1: <span id="bat1_dot" style="font-size: 1.5em; margin-right: 5px;">●</span> <span id="bat1_volt"></span> V<br/>
+            2: <span id="bat2_dot" style="font-size: 1.5em; margin-right: 5px;">●</span> <span id="bat2_volt"></span> V<br/>
+            3: <span id="bat3_dot" style="font-size: 1.5em; margin-right: 5px;">●</span> <span id="bat3_volt"></span> V<br/>
+            4: <span id="bat4_dot" style="font-size: 1.5em; margin-right: 5px;">●</span> <span id="bat4_volt"></span> V<br/>
+          </p>
+        </div>
+        <div class="col-lg-1" style="line-height: 1;">
+          <h4>Boards</h4>
+          <p>
+            1: <span id="board1_dot" style="font-size: 1.5em; margin-right: 5px;">●</span>
+              <button id="board1_btn" onclick="toggleBoard(1)" style="width: 40px;">OFF</button><br/>
+
+            2: <span id="board2_dot" style="font-size: 1.5em; margin-right: 5px;">●</span>
+              <button id="board2_btn" onclick="toggleBoard(2)" style="width: 40px;">OFF</button><br/>
+
+            3: <span id="board3_dot" style="font-size: 1.5em; margin-right: 5px;">●</span>
+              <button id="board3_btn" onclick="toggleBoard(3)" style="width: 40px;">OFF</button><br/>
+
+            4: <span id="board4_dot" style="font-size: 1.5em; margin-right: 5px;">●</span>
+              <button id="board4_btn" onclick="toggleBoard(4)" style="width: 40px;">OFF</button><br/>
+
+            5: <span id="board5_dot" style="font-size: 1.5em; margin-right: 5px;">●</span>
+              <button id="board5_btn" onclick="toggleBoard(5)" style="width: 40px;">OFF</button><br/>
+          </p>
+        </div>
+        <div class="col-lg-1" style="line-height: 1;">
+          <h4>Lights</h4>
           <div class="=row">
-            Light Control:
-          </div>
-          <div class="=row">
-            Spotlight:
             <input type="radio" id="spotlight_on" name="spotlight" />
             <label for="spotlight_on" >on</label>
 
             <input type="radio" id="spotlight_off" name="spotlight" checked="checked"/>
             <label for="spotlight_off" >off</label>
           </div>
-          <div class="=row">
-            LED Strip:
-            <input type="radio" id="ledstrip_on" name="ledstrip" />
-            <label for="ledstrip_on" >on</label>
-
-            <input type="radio" id="ledstrip_off" name="ledstrip" checked="checked"/>
-            <label for="ledstrip_off" >off</label>
-          </div>
         </div>
-        <div class="col-lg-2">
+        <div class="col-lg-2" style="line-height: 1;">
+          <h4>Positioning</h4>
           latitude: <p style="display:inline" id="latitude"></p> <br/>
           longitude: <p style="display:inline" id="longitude"></p> <br/>
           altitude: <p style="display:inline" id="altitude"></p> <br/>
@@ -172,6 +200,27 @@
 <script src="./static/js/keyboardteleop.js"></script>
 
 <script>
+
+  function toggleBoard(boardNum) {
+      const btn = document.getElementById(`board${boardNum}_btn`);
+      const dot = document.getElementById(`board${boardNum}_dot`);
+      console.log(boardNum)
+      const isOn = btn.innerText === 'ON';
+
+      if (isOn) {
+        btn.innerText = 'OFF';
+        btn.style.backgroundColor = 'red';
+        btn.style.color = 'white';
+   //     dot.style.color = 'red'; // indicate OFF state
+        // send command to turn off board
+      } else {
+        btn.innerText = 'ON';
+        btn.style.backgroundColor = 'green';
+        btn.style.color = 'white';
+   //     dot.style.color = 'green'; // indicate ON state
+        // send command to turn on board
+      }
+  }
 $(document).ready(function(){
 
     $("input[name='del']").each(function( index ) {
@@ -180,9 +229,6 @@ $(document).ready(function(){
         $(this).closest("div").remove();
       })
     });
-
-    var drive_cameras = ''
-
 
     var bat1_volt = 0, bat1_curr = 0;
     var bat2_volt = 0, bat2_curr = 0;
@@ -263,31 +309,52 @@ $(document).ready(function(){
       ros : ros,
       name : '/bat3',
       messageType : 'sensor_msgs/msg/BatteryState'
-    });     
+    });    
+    var bat4_listener = new ROSLIB.Topic({
+      ros : ros,
+      name : '/bat4',
+      messageType : 'sensor_msgs/msg/BatteryState'
+    });   
     var gps_listener = new ROSLIB.Topic({
       ros : ros,
       name : '/gps',
       messageType : 'sensor_msgs/msg/NavSatFix'
     }); 
+
+    function formatVoltage(voltage) {
+      let v = Number(voltage).toFixed(2); // e.g., "4.00"
+      let [intPart, decPart] = v.split(".");
+      intPart = intPart.padStart(2, '0'); // forces "04" for example
+      return `${intPart}.${decPart}`;
+    }
+
+    function updateBatteryDisplay(batId, voltage, status) {
+      document.getElementById(batId + '_volt').innerHTML = formatVoltage(voltage)
+
+      const dot = document.getElementById(batId + '_dot');
+      if (status === 2) {
+        dot.style.color = 'green';
+      } else if (status === 1) {
+        dot.style.color = 'gold';
+      } else {
+        dot.style.color = 'red';
+      }
+    }
     
     bat1_listener.subscribe(function(message) {
-      bat1_voltage = message.voltage
-      bat1_current = message.current
-      document.getElementById('bat1_volt').innerHTML=bat1_voltage.toFixed(2)
-      document.getElementById('bat1_curr').innerHTML=bat1_current.toFixed(2)
+      updateBatteryDisplay('bat1', message.voltage, message.power_supply_status);
     });
     bat2_listener.subscribe(function(message) {
-      bat2_voltage = message.voltage
-      bat2_current = message.current
-      document.getElementById('bat2_volt').innerHTML=bat2_voltage.toFixed(2)
-      document.getElementById('bat2_curr').innerHTML=bat2_current.toFixed(2)
+      updateBatteryDisplay('bat2', message.voltage, message.power_supply_status);
     });
     bat3_listener.subscribe(function(message) {
-      bat3_voltage = message.voltage
-      bat3_current = message.current
-      document.getElementById('bat3_volt').innerHTML=bat3_voltage.toFixed(2)
-      document.getElementById('bat3_curr').innerHTML=bat3_current.toFixed(2)
+      updateBatteryDisplay('bat3', message.voltage, message.power_supply_status);
     });
+    bat4_listener.subscribe(function(message) {
+      updateBatteryDisplay('bat4', message.voltage, message.power_supply_status);
+    });
+
+
 
     gps_listener.subscribe(function(message) {
       latitude = message.latitude
@@ -319,11 +386,11 @@ $(document).ready(function(){
         v_lin = (keyStatus['KeyW'] - keyStatus['KeyS']) * lin_vel_mult 
         v_ang = (keyStatus['KeyA'] - keyStatus['KeyD']) * ang_vel_mult
         strafe = (keyStatus['ArrowRight'] - keyStatus['ArrowLeft']) * 90.0
-        console.log(v_lin)
-        console.log(keyStatus['KeyW'])
-        console.log( keyStatus['keyS'])
-        console.log(lin_vel_mult)
-        console.log(v_ang)
+     //   console.log(v_lin)
+     //   console.log(keyStatus['KeyW'])
+      //  console.log( keyStatus['keyS'])
+     //   console.log(lin_vel_mult)
+     //   console.log(v_ang)
       }
       else{
         v_lin = (keyStatus['KeyQ'] - keyStatus['KeyE']) * lin_vel_mult * keyStatus['KeyW'] /2
@@ -350,7 +417,9 @@ $(document).ready(function(){
           z : v_ang 
         }
       });
-      cmd_vel.publish(twist);
+      if(document.getElementById("control_publish_on").checked){
+        cmd_vel.publish(twist);
+      }
     }
 
     function drivetrain_config_publisher(){
@@ -364,7 +433,7 @@ $(document).ready(function(){
     }
 
     function arm_commands_pub() {
-      console.log(keyStatus)
+    //  console.log(keyStatus)
       var velocity = [
         keyStatus['Numpad0'] - keyStatus['NumpadEnter'],
         keyStatus['Numpad1'] - keyStatus['Numpad4'],
@@ -389,7 +458,7 @@ $(document).ready(function(){
         velocity: velocity,
         effort: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
       });
-      console.log(velocity);
+  //    console.log(velocity);
       arm_commands.publish(jointstate);
     }
 
@@ -447,13 +516,15 @@ $(document).ready(function(){
     var interval_checkbox = setInterval(checkCheckbox, 50);
 
     var interval_cmd_vel = setInterval(cmd_vel_pub, 50);
-    var interval_config = setInterval(drivetrain_config_publisher, 200);
+    var interval_drive_config = setInterval(drivetrain_config_publisher, 200);
 
-    var interval_cmd_vel = setInterval(arm_commands_pub, 50);
-    var interval_config = setInterval(arm_settings_publisher, 500);
+    var interval_arm = setInterval(arm_commands_pub, 50);
+    var interval_arm_config = setInterval(arm_settings_publisher, 500);
 
-    var interval_config = setInterval(light_comands_publisher, 200);
+    var interval_light = setInterval(light_comands_publisher, 200);
     
+
 });
+
 </script>
 </html>
