@@ -56,14 +56,12 @@
           <img src="http://{{ros_host}}:9999/stream?topic=/topdowncam/image_raw&type=ros_compressed" 
           width="400" height="300" style="border:4px solid rgb(14, 229, 54); max-width:100%; height:auto"/>
         </div>
-          <input name="del" type="button" class="btn btn-warning" value="Hide Stream">
       </div>
       <div class="col-lg-6">
         <div class="stream3" style="object-fit:contain">
           <img src="http://{{ros_host}}:9999/stream?topic=/pancam/image_raw&type=ros_compressed"
            width="800" height="600" style="border:4px solid rgb(14, 229, 54); max-width:100%; height:auto"/>
         </div>
-          <input name="del" type="button" class="btn btn-warning" value="Hide Stream">
       </div>
       <div class="col-lg-3">
         <div class="stream1" style="object-fit:contain">
@@ -74,7 +72,6 @@
           <img src="http://{{ros_host}}:9999/stream?topic=/aruco_detection/image_raw&type=ros_compressed" 
           width="400" height="300" style="border:4px solid rgb(14, 229, 54); max-width:100%; height:auto"/>
         </div>
-          <input name="del" type="button" class="btn btn-warning" value="Hide Stream">
       </div>     
     </div>
       <div class="row">
@@ -157,19 +154,20 @@
           <h4>Boards</h4>
           <p>
             1: <span id="board1_dot" style="font-size: 1.5em; margin-right: 5px;">●</span>
-              <button id="board1_btn" onclick="toggleBoard(1)" style="width: 40px;">OFF</button><br/>
+              <button id="board1_btn" onclick="toggleBoard(1)" style="width: 40px; background-color: red; color: white;">OFF</button><br/>
 
             2: <span id="board2_dot" style="font-size: 1.5em; margin-right: 5px;">●</span>
-              <button id="board2_btn" onclick="toggleBoard(2)" style="width: 40px;">OFF</button><br/>
+              <button id="board2_btn" onclick="toggleBoard(2)" style="width: 40px; background-color: red; color: white;">OFF</button><br/>
 
             3: <span id="board3_dot" style="font-size: 1.5em; margin-right: 5px;">●</span>
-              <button id="board3_btn" onclick="toggleBoard(3)" style="width: 40px;">OFF</button><br/>
+              <button id="board3_btn" onclick="toggleBoard(3)" style="width: 40px; background-color: red; color: white;">OFF</button><br/>
 
             4: <span id="board4_dot" style="font-size: 1.5em; margin-right: 5px;">●</span>
-              <button id="board4_btn" onclick="toggleBoard(4)" style="width: 40px;">OFF</button><br/>
+              <button id="board4_btn" onclick="toggleBoard(4)" style="width: 40px; background-color: red; color: white;">OFF</button><br/>
 
             5: <span id="board5_dot" style="font-size: 1.5em; margin-right: 5px;">●</span>
-              <button id="board5_btn" onclick="toggleBoard(5)" style="width: 40px;">OFF</button><br/>
+              <button id="board5_btn" onclick="toggleBoard(5)" style="width: 40px; background-color: red; color: white;">OFF</button><br/>
+              <button id="board_apply_btn" onclick="power_commands_publisher()" style="width: 80px;">Apply</button><br/>
           </p>
         </div>
         <div class="col-lg-1" style="line-height: 1;">
@@ -200,35 +198,17 @@
 <script src="./static/js/keyboardteleop.js"></script>
 
 <script>
-
-  function toggleBoard(boardNum) {
-      const btn = document.getElementById(`board${boardNum}_btn`);
-      const dot = document.getElementById(`board${boardNum}_dot`);
-      console.log(boardNum)
-      const isOn = btn.innerText === 'ON';
-
-      if (isOn) {
-        btn.innerText = 'OFF';
-        btn.style.backgroundColor = 'red';
-        btn.style.color = 'white';
-   //     dot.style.color = 'red'; // indicate OFF state
-        // send command to turn off board
-      } else {
-        btn.innerText = 'ON';
-        btn.style.backgroundColor = 'green';
-        btn.style.color = 'white';
-   //     dot.style.color = 'green'; // indicate ON state
-        // send command to turn on board
-      }
-  }
-$(document).ready(function(){
-
+  $(document).ready(function(){
     $("input[name='del']").each(function( index ) {
       $(this).on("click", function(){
         $(this).closest("div").find("img").attr("src","");
         $(this).closest("div").remove();
       })
     });
+  });
+
+
+
 
     var bat1_volt = 0, bat1_curr = 0;
     var bat2_volt = 0, bat2_curr = 0;
@@ -238,6 +218,9 @@ $(document).ready(function(){
     var drive_control_mode = 1, drive_power_saving = 0, drive_hearbeat = 1;
     var arm_control_mode = 1, arm_power_saving = 1, arm_hearbeat = 1;
     var spotlight = 0, ledstrip = 0;
+
+    var power_init_flag = [0,0,0,0,0]
+    var power_commands_array = [0.0, 0.0, 0.0, 0.0, 0.0]
 
     var joint_multipliers = [2, 1, 1, 4.68, 4.68, 4.68, 1]
     var arm_direction = [1,-1,-1,1,-1,1,1]
@@ -258,7 +241,7 @@ $(document).ready(function(){
         url : 'ws://{{ros_host}}:9090'
     });
 
-    // Initialize the teleop.
+    // drivetrain
     var cmd_vel = new ROSLIB.Topic({
         ros : ros,
         name : '/cmd_vel',
@@ -270,7 +253,7 @@ $(document).ready(function(){
         messageType : 'sensor_msgs/msg/JointState'
     });
 
-    // Initialize the teleop.
+    // arm
     var arm_commands = new ROSLIB.Topic({
         ros : ros,
         name : '/arm_commands',
@@ -281,13 +264,19 @@ $(document).ready(function(){
         name : '/arm_settings',
         messageType : 'sensor_msgs/msg/JointState'
     });
-
-
+    //light
     var light_comamnds = new ROSLIB.Topic({
         ros : ros,
         name : '/light_commands',
         messageType : 'sensor_msgs/msg/JointState'
     });
+    //power
+    var power_commands = new ROSLIB.Topic({
+        ros : ros,
+        name : '/power_commands',
+        messageType : 'sensor_msgs/msg/JointState'
+    });
+
 
     
 
@@ -320,6 +309,31 @@ $(document).ready(function(){
       name : '/gps',
       messageType : 'sensor_msgs/msg/NavSatFix'
     }); 
+    var power_listener = new ROSLIB.Topic({
+      ros : ros,
+      name : '/power_states',
+      messageType : 'sensor_msgs/msg/JointState'
+    }); 
+
+    function toggleBoard(boardNum) {
+      const btn = document.getElementById(`board${boardNum}_btn`);
+      const dot = document.getElementById(`board${boardNum}_dot`);
+      console.log(boardNum)
+      const isOn = btn.innerText === 'ON';
+
+      if (isOn) {
+        btn.innerText = 'OFF';
+        btn.style.backgroundColor = 'red';
+        btn.style.color = 'white';
+        power_commands_array[boardNum - 1] = 0.0;
+      } else {
+        btn.innerText = 'ON';
+        btn.style.backgroundColor = 'green';
+        btn.style.color = 'white';
+        power_commands_array[boardNum - 1] = 1.0;
+      }
+    }
+
 
     function formatVoltage(voltage) {
       let v = Number(voltage).toFixed(2); // e.g., "4.00"
@@ -364,6 +378,37 @@ $(document).ready(function(){
       document.getElementById('longitude').innerHTML=longitude
       document.getElementById('altitude').innerHTML=altitude
     });
+
+    power_listener.subscribe(function(message){
+      console.log("power received!")
+      for(let c = 1; c < 6; c += 1){
+        var dot = document.getElementById(`board${c}_dot`);
+        var btn = document.getElementById(`board${c}_btn`);
+        if(message.position[c - 1] < 0.5){
+          dot.style.color = 'red'
+          if(power_init_flag[c - 1] <= 0){
+            console.log("initializing button!")
+            btn.innerText = 'OFF';
+            btn.style.backgroundColor = 'red';
+            btn.style.color = 'white';
+            power_commands_array[c - 1] = 0.0;
+            power_init_flag[c - 1] = 1
+          }
+        }
+        else{
+          dot.style.color = 'green'
+          if(power_init_flag[c - 1] <= 0){
+            console.log("initializing button!")
+            btn.innerText = 'ON';
+            btn.style.backgroundColor = 'green';
+            btn.style.color = 'white';
+            power_commands_array[c - 1] = 1.0;
+            power_init_flag[c - 1] = 1
+          }
+        }
+      }
+    });
+
     
 
     document.addEventListener('keydown', function(event) {
@@ -386,11 +431,6 @@ $(document).ready(function(){
         v_lin = (keyStatus['KeyW'] - keyStatus['KeyS']) * lin_vel_mult 
         v_ang = (keyStatus['KeyA'] - keyStatus['KeyD']) * ang_vel_mult
         strafe = (keyStatus['ArrowRight'] - keyStatus['ArrowLeft']) * 90.0
-     //   console.log(v_lin)
-     //   console.log(keyStatus['KeyW'])
-      //  console.log( keyStatus['keyS'])
-     //   console.log(lin_vel_mult)
-     //   console.log(v_ang)
       }
       else{
         v_lin = (keyStatus['KeyQ'] - keyStatus['KeyE']) * lin_vel_mult * keyStatus['KeyW'] /2
@@ -482,6 +522,16 @@ $(document).ready(function(){
       light_comamnds.publish(jointstate);
     }
 
+    function power_commands_publisher(){
+      var jointstate = new ROSLIB.Message({
+        name : ['board1', 'board2', 'board3', 'board4', 'board5'],
+        position : power_commands_array,
+        velocity : [],
+        effort : []
+      });
+      power_commands.publish(jointstate)
+    }
+
     function checkCheckbox() {
       if(document.getElementById('drive_control_raw').checked){
         drive_control_mode = 0
@@ -523,8 +573,6 @@ $(document).ready(function(){
 
     var interval_light = setInterval(light_comands_publisher, 200);
     
-
-});
 
 </script>
 </html>
