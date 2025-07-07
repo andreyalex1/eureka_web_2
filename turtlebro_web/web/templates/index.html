@@ -181,11 +181,30 @@
           </div>
         </div>
         <div class="col-lg-2" style="line-height: 1;">
-          <h4>Positioning</h4>
-          latitude: <p style="display:inline" id="latitude"></p> <br/>
-          longitude: <p style="display:inline" id="longitude"></p> <br/>
-          altitude: <p style="display:inline" id="altitude"></p> <br/>
-        </div>
+          <div class="col-lg-2" style="line-height: 1;">
+            <h4>Positioning</h4>
+            <table>
+              <tr><td>lat:</td>  <td id="latitude"></td></tr>
+              <tr><td>lon:</td>  <td id="longitude"></td></tr>
+              <tr><td>alt:</td>  <td id="altitude"></td></tr>
+              <tr><td>head:</td> <td><span id="heading"></span>°</td></tr>
+            </table>
+            <h6>Target</h6>
+            <table>
+              <tr>
+                <td>lat:</td>
+                <td><input type="number" id="target_lat" step="any" style="width: 100px;"></td>
+              </tr>
+              <tr>
+                <td>lon:</td>
+                <td><input type="number" id="target_lon" step="any" style="width: 100px;"></td>
+              </tr>
+              <tr>
+                <td>head:</td>
+                <td><span id="desired_heading">--</span>°</td>
+              </tr>
+            </table>
+          </div>
       </div>
   </div>
 </main>
@@ -205,6 +224,8 @@
         $(this).closest("div").remove();
       })
     });
+    document.getElementById("target_lat").addEventListener("input", updateDesiredHeading);
+    document.getElementById("target_lon").addEventListener("input", updateDesiredHeading);
   });
 
 
@@ -306,9 +327,14 @@
     });   
     var gps_listener = new ROSLIB.Topic({
       ros : ros,
-      name : '/gps',
+      name : '/gps/fix',
       messageType : 'sensor_msgs/msg/NavSatFix'
     }); 
+    var compass_listener = new ROSLIB.Topic({
+      ros : ros,
+      name : '/compass',
+      messageType : 'sensor_msgs/msg/Imu'
+    });
     var power_listener = new ROSLIB.Topic({
       ros : ros,
       name : '/power_states',
@@ -371,13 +397,58 @@
 
 
     gps_listener.subscribe(function(message) {
-      latitude = message.latitude
-      longitude = message.longitude
-      altitude = message.altitude
-      document.getElementById('latitude').innerHTML=latitude
-      document.getElementById('longitude').innerHTML=longitude
-      document.getElementById('altitude').innerHTML=altitude
+      const latitude = message.latitude.toFixed(6);
+      const longitude = message.longitude.toFixed(6);
+      const altitude = message.altitude.toFixed(1);
+
+      document.getElementById('latitude').innerHTML = latitude;
+      document.getElementById('longitude').innerHTML = longitude;
+      document.getElementById('altitude').innerHTML = altitude;
+
+      updateDesiredHeading();  // Call the function to recalculate desired heading
     });
+
+    compass_listener.subscribe(function(message) {
+      heading = message.angular_velocity.z
+      heading = (-heading / 3.14 * 180 + 90 + 360) % 360
+      document.getElementById('heading').innerHTML=heading.toFixed(1)
+    });
+
+    function computeBearing(lat1, lon1, lat2, lon2) {
+      const toRad = deg => deg * Math.PI / 180;
+      const toDeg = rad => rad * 180 / Math.PI;
+
+      const φ1 = toRad(lat1);
+      const φ2 = toRad(lat2);
+      const Δλ = toRad(lon2 - lon1);
+
+      const y = Math.sin(Δλ) * Math.cos(φ2);
+      const x = Math.cos(φ1)*Math.sin(φ2) -
+                Math.sin(φ1)*Math.cos(φ2)*Math.cos(Δλ);
+
+      let θ = Math.atan2(y, x);  // in radians
+      let bearing = (toDeg(θ) + 360) % 360;  // normalize to [0,360)
+      return bearing;
+    }
+
+    function updateDesiredHeading() {
+      const latText = document.getElementById("latitude").innerText;
+      const lonText = document.getElementById("longitude").innerText;
+      const targetLat = parseFloat(document.getElementById("target_lat").value);
+      const targetLon = parseFloat(document.getElementById("target_lon").value);
+
+      const currLat = parseFloat(latText);
+      const currLon = parseFloat(lonText);
+
+      if (isNaN(currLat) || isNaN(currLon) || isNaN(targetLat) || isNaN(targetLon)) {
+          document.getElementById("desired_heading").innerText = "--";
+          return;
+      }
+
+      const desired = computeBearing(currLat, currLon, targetLat, targetLon);
+      document.getElementById("desired_heading").innerText = desired.toFixed(1);
+    }
+
 
     power_listener.subscribe(function(message){
       console.log("power received!")
@@ -422,6 +493,8 @@
         keyStatus[event.code] = 0;
       }
     });
+
+
 
     function cmd_vel_pub() {
       var v_lin = 0, v_ang = 0;
